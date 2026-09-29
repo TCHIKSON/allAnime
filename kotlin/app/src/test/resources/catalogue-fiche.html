@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Extrait reel d'une fiche catalogue</title>
+<!--
+  Extrait de la fiche « classroom-of-the-elite » telle que servie par le catalogue.
+  Conserve volontairement :
+   - la definition de la fonction panneauAnime(nom, url), sans guillemets ;
+   - le gabarit en commentaire panneauAnime("nom", "url") ;
+   - un second conteneur de meme classe contenant des panneauScan(...).
+-->
+<script>
+function panneauAnime(nom, url){
+    document.write('<a href="'+url+'"><div>'+nom+'</div></a>');
+}
+function panneauScan(nom, url){
+    document.write('<a href="'+url+'"><div>'+nom+'</div></a>');
+}
+</script>
+</head>
+<body>
+				<!-- ANIME -->
+				<h2 class="text-white text-xl font-bold uppercase border-b-2 mt-5 border-slate-500">Anime</h2>
+				<div class="flex flex-wrap overflow-y-hidden justify-start bg-slate-900 bg-opacity-70 rounded mt-2 h-auto">
+					<script>
+					/*panneauAnime("nom", "url"); -> on en met autant qu'on veut à la ligne*/
+					panneauAnime("Saison 1", "saison1/vostfr");
+					panneauAnime("Saison 2", "saison2/vostfr");
+					panneauAnime("Saison 3", "saison3/vostfr");
+					panneauAnime("Saison 4", "saison4/vostfr");
+					</script>
+				</div>
+
+				<!-- MANGA -->
+				<h2 class="text-white text-xl font-bold uppercase border-b-2 mt-5 border-slate-500">Manga</h2>
+				<div class="flex flex-wrap overflow-y-hidden justify-start bg-slate-900 bg-opacity-70 rounded mt-2 h-auto">
+					<script>
+					/*panneauScan("nom", "url"); -> on en met autant qu'on veut à la ligne*/
+					panneauScan("Scans", "scan/vf");
+					</script>
+				</div>
+</body>
+</html>

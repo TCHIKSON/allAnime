@@ -1,0 +1,20 @@
+# Le .gitignore racine exclut *.jar : le wrapper Gradle doit rester versionne,
+# sinon `./gradlew` ne fonctionne pas sur une copie fraiche du depot.
+!gradle/wrapper/gradle-wrapper.jar
+
+*.iml
+.gradle/
+# Contient sdk.dir et l'acces Infisical (secret de l'identite machine).
+local.properties
+
+# Signature de l'application : ne doit jamais etre versionnee.
+keystore.properties
+*.jks
+*.keystore
+
+.idea/
+.DS_Store
+build/
+captures/
+.externalNativeBuild/
+.cxx/

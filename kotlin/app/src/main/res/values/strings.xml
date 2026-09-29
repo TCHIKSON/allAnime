@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">allAnime</string>
+
+    <!-- Navigation / actions -->
+
+    <!-- Barre de navigation laterale -->
+    <string name="nav_search">Rechercher</string>
+    <string name="nav_home">Accueil</string>
+    <string name="nav_series">Séries</string>
+    <string name="nav_films">Films</string>
+    <string name="nav_planning">Planning</string>
+
+    <!-- Confirmation de sortie -->
+    <string name="exit_title">Quitter allAnime ?</string>
+    <string name="exit_message">Vous reviendrez à l\'écran d\'accueil du téléviseur.</string>
+    <string name="action_yes">Oui</string>
+    <string name="action_no">Non</string>
+
+    <!-- Catalogue filtre (Series / Films) -->
+    <string name="title_series">Séries</string>
+    <string name="title_films">Films</string>
+    <plurals name="label_catalogue_count">
+        <item quantity="one">%1$d titre</item>
+        <item quantity="other">%1$d titres</item>
+    </plurals>
+
+    <!-- Recherche : clavier et suggestions -->
+    <string name="search_field_hint">Titre de l\'anime</string>
+    <string name="search_keyboard_space">Espace</string>
+    <string name="search_keyboard_symbols">&amp;?!</string>
+    <string name="search_keyboard_letters">ABC</string>
+    <string name="section_released_today">Sortis %1$s</string>
+    <string name="section_recent_additions">Ajouts des jours précédents</string>
+    <string name="label_episode_new">Nouveau</string>
+    <string name="label_episode_remaining">%1$d min restantes</string>
+    <string name="action_open_detail">Voir la fiche</string>
+    <string name="action_play">Lire</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_retry">Réessayer</string>
+    <string name="action_back">Retour</string>
+    <string name="action_fullscreen">Plein écran</string>
+    <string name="action_exit_fullscreen">Quitter le plein écran</string>
+    <string name="action_next_episode">Épisode suivant</string>
+    <string name="action_previous_episode">Épisode précédent</string>
+    <string name="action_watch_trailer">Bande-annonce</string>
+    <string name="action_settings">Réglages</string>
+
+    <!-- Etats de chargement (section 29) -->
+    <string name="loading_catalogue">Chargement du catalogue…</string>
+    <string name="loading_planning">Mise à jour du planning…</string>
+    <string name="loading_search">Recherche…</string>
+    <string name="loading_details">Chargement des informations…</string>
+    <string name="loading_seasons">Chargement des saisons…</string>
+    <string name="loading_episodes">Chargement des épisodes…</string>
+    <string name="loading_player">Chargement du lecteur…</string>
+
+    <!-- Etats vides -->
+    <string name="empty_catalogue">Le catalogue ne renvoie aucun anime pour le moment.</string>
+    <string name="empty_planning">Le planning des sorties n\'est pas disponible.</string>
+    <string name="empty_today_releases">Aucune sortie annoncée aujourd\'hui.</string>
+    <string name="empty_day_releases">Aucune sortie ce jour-là.</string>
+    <string name="empty_search">Aucun résultat pour cette recherche.</string>
+    <string name="empty_search_hint">Saisissez un titre pour lancer la recherche.</string>
+    <string name="empty_seasons">Aucune saison disponible pour cet anime.</string>
+    <string name="empty_languages">Aucune langue disponible pour cette saison.</string>
+    <string name="empty_episodes">Aucun épisode disponible pour cette sélection.</string>
+    <string name="empty_players">Aucun lecteur disponible pour cet épisode.</string>
+
+    <!-- Erreurs (section 27) -->
+    <string name="error_network">Connexion impossible. Vérifiez le réseau de la TV.</string>
+    <string name="error_timeout">Le serveur met trop de temps à répondre.</string>
+    <string name="error_anilist">AniList n\'a pas pu répondre à la demande.</string>
+    <string name="error_invalid_data">Les données reçues sont illisibles.</string>
+    <string name="error_not_found">Contenu introuvable.</string>
+    <string name="error_catalogue_unavailable">Le catalogue des saisons est indisponible pour cet anime.</string>
+    <string name="error_episodes_unavailable">La liste des épisodes est indisponible pour cette saison.</string>
+    <string name="error_player_unreachable">Ce lecteur est inaccessible.</string>
+    <string name="error_trailer_unavailable">Cette bande-annonce n\'a pas pu démarrer.</string>
+    <string name="error_unknown">Une erreur inattendue est survenue.</string>
+
+    <!-- Lecteur -->
+    <string name="player_autoplay_blocked">La lecture automatique a été refusée. Appuyez sur Lire.</string>
+    <string name="player_index">Lecteur %1$d</string>
+    <string name="player_index_with_host">Lecteur %1$d · %2$s</string>
+    <string name="player_position">%1$s · %2$s · %3$s</string>
+    <string name="player_redirect_blocked">Redirection bloquée.</string>
+    <string name="player_switching">Lecteur inaccessible, passage au lecteur suivant…</string>
+    <string name="player_popup_blocked">Fenêtre publicitaire bloquée.</string>
+    <string name="player_too_slow">Ce lecteur ne démarre pas, passage au suivant…</string>
+    <string name="player_all_failed">Aucun lecteur n\'a réussi à démarrer cet épisode.</string>
+
+    <!-- Réglages du lecteur (engrenage) -->
+    <string name="settings_title">Réglages</string>
+    <string name="settings_players">Lecteur</string>
+    <string name="settings_quality">Qualité</string>
+    <string name="quality_auto">Automatique</string>
+    <string name="quality_height">%1$dp</string>
+    <string name="quality_locked">Ce lecteur choisit lui-même sa résolution.</string>
+    <string name="quality_displayed">Affiché en %1$dp</string>
+
+    <!-- Fiche détaillée -->
+    <string name="section_studios">Studios</string>
+    <string name="section_characters">Personnages</string>
+    <string name="section_staff">Staff</string>
+    <string name="section_external_links">Liens externes</string>
+    <string name="section_episodes">Épisodes</string>
+    <string name="tab_suggestions">Suggestions</string>
+    <string name="tab_details">Détails</string>
+    <string name="section_continue_watching">Reprendre votre visionnage</string>
+    <string name="section_because_watched">Parce que vous avez regardé %1$s</string>
+    <string name="section_today_releases">Sorties du jour · %1$s</string>
+    <string name="section_others">Autres</string>
+    <string name="action_resume_episode">Reprendre l\'épisode %1$d</string>
+    <string name="section_voice_actors">Personnages et voix</string>
+    <string name="label_episodes_available">%1$d épisodes disponibles</string>
+    <string name="label_one_episode_available">1 épisode disponible</string>
+    <string name="info_status">Statut</string>
+    <string name="info_release_date">Date de sortie</string>
+    <string name="info_genre">Genre</string>
+    <string name="info_themes">Thèmes</string>
+    <string name="info_rating">Classification</string>
+    <string name="info_formats">Formats</string>
+    <string name="info_creator">Création</string>
+    <string name="info_director">Réalisation</string>
+    <string name="rating_adult">18+ · Contenu adulte</string>
+    <string name="label_ongoing">en cours</string>
+    <string name="warning_title">Avertissement</string>
+    <string name="warning_photosensitivity">Certaines séquences animées peuvent comporter des effets lumineux clignotants susceptibles de gêner les personnes photosensibles.</string>
+    <string name="info_season">Saison de sortie</string>
+    <string name="info_studio">Studio</string>
+    <string name="info_source">Source</string>
+    <string name="info_duration">Durée</string>
+    <string name="info_episodes">Épisodes</string>
+    <string name="info_score">Note moyenne</string>
+    <string name="info_origin">Origine</string>
+    <string name="info_range">%1$s – %2$s</string>
+
+    <!-- Planning des sorties -->
+    <string name="planning_title">Planning des sorties</string>
+    <string name="planning_no_fixed_day">Œuvres en cours sans jour fixe</string>
+    <string name="planning_postponed">Reporté</string>
+    <string name="planning_time_unknown">Heure non précisée</string>
+
+    <!-- Rôles AniList traduits -->
+    <string name="role_main">Principal</string>
+    <string name="role_supporting">Secondaire</string>
+    <string name="role_background">Figuration</string>
+    <string name="label_voice_japanese">Voix japonaise</string>
+
+    <!-- Commandes du lecteur -->
+    <string name="action_rewind">− 10 s</string>
+    <string name="action_forward">+ 10 s</string>
+
+    <plurals name="label_players_count">
+        <item quantity="one">%d lecteur</item>
+        <item quantity="other">%d lecteurs</item>
+    </plurals>
+    <string name="label_episode">Épisode %1$d</string>
+    <string name="label_episode_range">%1$d – %2$d</string>
+    <string name="label_duration">%1$d min</string>
+    <string name="label_score">%1$d %%</string>
+    <string name="label_unknown_value">Non renseigné</string>
+    <string name="label_no_image">Image indisponible</string>
+    <string name="label_voice_actor">VO : %1$s</string>
+
+    <!-- Descriptions d\'accessibilité -->
+    <string name="cd_cover">Jaquette de %1$s</string>
+    <string name="cd_logo">Logo allAnime</string>
+</resources>

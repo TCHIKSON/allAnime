@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Charte graphique reprise du logo allAnime :
+      corail  #F94C4C  (fond du logo)
+      blanc   #FFFFFF  (pastille centrale)
+      gris    #B7BAC4  ("all" du logotype)
+      charbon #242730  ("Anime" du logotype)
+-->
+<resources>
+    <color name="coral">#FFF94C4C</color>
+    <color name="coral_bright">#FFFF6B6B</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="mist_grey">#FFB7BAC4</color>
+    <color name="charcoal">#FF242730</color>
+    <color name="ink_background">#FF101216</color>
+</resources>
