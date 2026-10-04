@@ -89,6 +89,7 @@
     <string name="player_popup_blocked">Fenêtre publicitaire bloquée.</string>
     <string name="player_too_slow">Ce lecteur ne démarre pas, passage au suivant…</string>
     <string name="player_all_failed">Aucun lecteur n\'a réussi à démarrer cet épisode.</string>
+    <string name="player_external_frame">Ce lecteur gère lui-même la lecture.</string>
 
     <!-- Réglages du lecteur (engrenage) -->
     <string name="settings_title">Réglages</string>

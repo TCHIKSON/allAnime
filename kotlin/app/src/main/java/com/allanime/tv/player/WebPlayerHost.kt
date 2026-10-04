@@ -5,7 +5,9 @@ import android.content.Context
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
@@ -64,6 +66,15 @@ class WebPlayerHost(
          * L'interface enchaine sur le lecteur suivant sans rien demander.
          */
         fun surDemarrageImpossible()
+
+        /**
+         * Le lecteur est enferme dans un cadre d'une autre origine : ni le script de
+         * garde ni les commandes de l'application ne l'atteignent.
+         *
+         * **Ce n'est pas un echec** : la video y joue peut-etre parfaitement. Basculer
+         * vers un autre lecteur couperait alors une lecture en cours pour rien.
+         */
+        fun surLecteurEnCadreExterne()
 
         /** Qualites proposees par le lecteur courant, telles qu'il les expose. */
         fun surQualites(inventaire: InventaireQualites)
@@ -230,6 +241,44 @@ class WebPlayerHost(
     private fun executer(script: String) {
         runCatching { webView.evaluateJavascript(script, null) }
             .onFailure { Log.w(TAG, "Commande lecteur ignoree", it) }
+    }
+
+    /**
+     * Un appui au centre du lecteur, produit par l'application elle-meme.
+     *
+     * Certaines pages ne lancent rien avant un geste : couche « cliquez pour lire »,
+     * coupure publicitaire a passer, balise video qui n'est creee qu'au premier clic.
+     * Un script ne peut pas franchir cela dans un cadre d'une autre origine ; un
+     * evenement tactile, lui, traverse tout, puisqu'il part de la vue et non de la page.
+     *
+     * Il n'est produit qu'a la demande du script de garde, **la ou celui-ci s'appretait
+     * a declarer le lecteur injouable** : une page qui demarre seule n'en recoit jamais,
+     * et les lecteurs qui fonctionnent deja gardent exactement le comportement qu'ils
+     * avaient. Les fenetres et redirections qu'un tel appui declenche sur ces pages sont
+     * traitees comme les autres : `onCreateWindow` les refuse, [autoriserNavigation] les
+     * arrete.
+     */
+    private fun simulerAppui() {
+        val largeur = webView.width
+        val hauteur = webView.height
+        if (largeur <= 0 || hauteur <= 0) return
+
+        val x = largeur / 2f
+        val y = hauteur / 2f
+        val depart = SystemClock.uptimeMillis()
+
+        // Descente **et** levee : un doigt seulement pose ne vaut pas un clic.
+        val descente = MotionEvent.obtain(depart, depart, MotionEvent.ACTION_DOWN, x, y, 0)
+        val levee =
+            MotionEvent.obtain(depart, depart + DUREE_APPUI_MS, MotionEvent.ACTION_UP, x, y, 0)
+
+        runCatching {
+            webView.dispatchTouchEvent(descente)
+            webView.dispatchTouchEvent(levee)
+        }.onFailure { Log.w(TAG, "Appui simule ignore", it) }
+
+        descente.recycle()
+        levee.recycle()
     }
 
     private fun retirerVuePleinEcran() {
@@ -404,6 +453,20 @@ class WebPlayerHost(
         fun onDemarrageImpossible() = surFilDInterface { ecouteur.surDemarrageImpossible() }
 
         /**
+         * La page reclame un geste. Le script de garde ne le demande qu'au moment ou il
+         * allait conclure a un lecteur mort : c'est sa derniere carte avant de trancher.
+         */
+        @JavascriptInterface
+        fun onAppuiRequis() = surFilDInterface { simulerAppui() }
+
+        /** Lecteur dans un cadre d'une autre origine : hors de portee, pas mort. */
+        @JavascriptInterface
+        fun onLecteurEnCadreExterne(url: String) = surFilDInterface {
+            Log.i(TAG, "Lecteur en cadre externe : $url")
+            ecouteur.surLecteurEnCadreExterne()
+        }
+
+        /**
          * Inventaire des qualites, transmis en JSON parce que le pont JavaScript ne
          * sait passer que des types simples. Un inventaire illisible est ignore :
          * l'interface garde alors son entree automatique.
@@ -425,6 +488,9 @@ class WebPlayerHost(
 
     private companion object {
         const val TAG = "WebPlayerHost"
+
+        /** Duree d'un appui simule : assez pour un clic, trop peu pour un appui long. */
+        const val DUREE_APPUI_MS = 60L
         val SCHEMAS_AUTORISES = setOf("http", "https")
 
         /** Les pages evoluent : une clef inconnue ne doit pas perdre l'inventaire. */

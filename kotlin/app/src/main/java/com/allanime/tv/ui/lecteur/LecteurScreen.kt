@@ -276,6 +276,15 @@ private fun SurfaceLecteur(
                     }
                 }
 
+                override fun surLecteurEnCadreExterne() {
+                    // Surtout pas d'echec ici : la video joue peut-etre parfaitement
+                    // dans ce cadre, et basculer sur un autre lecteur couperait une
+                    // lecture en cours. On arrete simplement d'attendre, et on previent
+                    // que les commandes de l'application n'y repondront pas.
+                    chargement = false
+                    message = R.string.player_external_frame
+                }
+
                 override fun surQualites(inventaire: InventaireQualites) {
                     qualites = inventaire
                 }

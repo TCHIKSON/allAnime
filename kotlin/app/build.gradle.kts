@@ -226,8 +226,8 @@ android {
         applicationId = "com.allanime.tv"
         minSdk = 23
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.6"
+        versionCode = 12
+        versionName = "2.1"
 
         // Racine du catalogue : secret Infisical, jamais versionne dans le `.env`.
         buildConfigField(

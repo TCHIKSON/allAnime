@@ -767,6 +767,14 @@ multiples désactivées, plein écran HTML5 relayé à l'interface.
 - **Échec de lecture** : une source illisible n'émet aucune erreur réseau au niveau
   du WebView — c'est la balise `video` qui le signale. Cet événement est capté et
   déclenche la bascule automatique vers le lecteur suivant.
+- **Appui simulé** : certaines pages ne lancent rien avant un geste — couche « cliquez
+  pour lire », coupure publicitaire à passer, balise `video` qui n'est créée qu'au
+  premier clic. Aucun script ne franchit cela dans un cadre d'une autre origine ; un
+  `MotionEvent` envoyé à la vue, si. Il n'est produit **que là où le script de garde
+  s'apprêtait à déclarer le lecteur injouable**, deux fois au plus : une page qui
+  démarre seule n'en reçoit jamais, et les lecteurs qui fonctionnaient déjà gardent
+  exactement le comportement qu'ils avaient. Les fenêtres et redirections qu'un tel
+  appui déclenche restent refusées comme les autres.
 - **Commandes** : barre de progression avec minutage, puis une seule rangée de
   boutons ronds — saut de ±10 s, lecture/pause, épisode précédent/suivant, et
   l'engrenage. Les touches média et les flèches gauche/droite (contrôles masqués)
@@ -848,10 +856,14 @@ hors de l'application.
 
 ### Limites connues
 
-- Un WebView n'exécute le JS injecté que dans le **document principal**. Si un lecteur
-  enferme la vidéo dans un iframe d'une autre origine, le nettoyage des overlays et
-  les commandes de lecture ne s'y appliquent pas ; restent le filtrage réseau et le
-  changement de lecteur.
+- Un WebView n'exécute le JS injecté que dans le **document principal**. Les cadres de
+  **même origine** sont parcourus depuis là — beaucoup de pages d'intégration ne sont
+  qu'une coquille autour d'un second cadre du même site — mais un cadre d'une **autre
+  origine** lève dès qu'on le touche : le nettoyage des overlays, le choix de la
+  résolution et les commandes de lecture ne s'y appliquent pas. Ce cas est reconnu
+  (`onLecteurEnCadreExterne`) et **n'est pas traité comme un échec** : la vidéo y joue
+  peut-être parfaitement, et basculer sur un autre lecteur couperait une lecture en
+  cours. L'application le dit, et laisse la page se débrouiller.
 - La lecture HLS (`.m3u8`) dépend du WebView du téléviseur.
 - L'autoplay peut être refusé par le contenu embarqué : un message et un bouton
   « Lire » prennent alors le relais.
@@ -905,6 +917,7 @@ Compose qu'elles remplaçaient :
 |------------------------|---------------------------------------------------------------|
 | `app_logo`             | En haut à gauche de l'accueil et de la recherche (`LogoAllAnime`) |
 | `app_logo_no_data`     | Au-dessus de tout message d'état vide ou en échec (`BlocMessage`) |
+| `app_logo_exite`       | Confirmation de sortie (`DialogueSortie`)                      |
 
 `BlocMessage` couvrant les quatre états de `UiState`, l'illustration apparaît
 partout où l'application n'a rien à montrer : saison sans épisode disponible,

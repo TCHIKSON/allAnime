@@ -73,6 +73,90 @@ internal object OverlayScripts {
             } catch (e) {}
           }
 
+          /* --- 0. Cadres accessibles ----------------------------------------- */
+          /* Un WebView n'execute ce script que dans le document principal. Les cadres
+             de **meme origine** restent lisibles depuis ici, et beaucoup de pages
+             d'integration ne sont qu'une coquille autour d'un second cadre, du meme
+             site, qui porte le vrai lecteur : sans les parcourir, on conclurait qu'il
+             n'y a pas de video la ou elle est simplement un etage plus bas.
+
+             Un cadre d'une autre origine, lui, leve des qu'on le touche. C'est la
+             limite de la plateforme, et [cadreExterne] en tire les consequences plutot
+             que de laisser croire a un lecteur mort. */
+          var MAX_DOCUMENTS = 8;
+
+          function documentsAccessibles() {
+            var docs = [document];
+            for (var i = 0; i < docs.length && docs.length < MAX_DOCUMENTS; i++) {
+              var cadres;
+              try { cadres = docs[i].querySelectorAll('iframe, frame'); } catch (e) { continue; }
+              for (var j = 0; j < cadres.length; j++) {
+                try {
+                  var interne = cadres[j].contentDocument;
+                  if (interne && interne.querySelector) { docs.push(interne); }
+                } catch (e) {}
+              }
+            }
+            return docs;
+          }
+
+          function trouverVideo() {
+            var docs = documentsAccessibles();
+            for (var i = 0; i < docs.length; i++) {
+              try {
+                var video = docs[i].querySelector('video');
+                if (video) { return video; }
+              } catch (e) {}
+            }
+            return null;
+          }
+
+          /* Adresse du premier cadre d'une autre origine assez grand pour porter le
+             lecteur : une banniere publicitaire n'occupe jamais le quart de l'ecran. */
+          function cadreExterne() {
+            var ecran = window.innerWidth * window.innerHeight;
+            if (ecran <= 0) { return null; }
+
+            var docs = documentsAccessibles();
+            for (var i = 0; i < docs.length; i++) {
+              var cadres;
+              try { cadres = docs[i].querySelectorAll('iframe'); } catch (e) { continue; }
+              for (var j = 0; j < cadres.length; j++) {
+                var cadre = cadres[j];
+                var lisible = false;
+                try { lisible = !!cadre.contentDocument; } catch (e) { lisible = false; }
+                if (lisible) { continue; }
+
+                var adresse = cadre.getAttribute('src') || cadre.getAttribute('data-src') || '';
+                if (adresse.indexOf('http') !== 0 && adresse.indexOf('//') !== 0) { continue; }
+
+                var cadrage = cadre.getBoundingClientRect();
+                if ((cadrage.width * cadrage.height) / ecran > 0.25) { return adresse; }
+              }
+            }
+            return null;
+          }
+
+          /* --- 0 bis. Appui simule ------------------------------------------- */
+          /* Certaines pages ne lancent rien avant un clic : coupure publicitaire a
+             passer, couche « cliquez pour lire », lecteur qui ne cree sa balise video
+             qu'au premier geste. Aucun script ne peut franchir cela dans un cadre
+             d'une autre origine — un vrai appui, lui, le peut, et c'est l'application
+             qui le produit sur le WebView.
+
+             Il n'est demande que la ou l'on s'appretait a declarer le lecteur mort :
+             une page qui demarre seule n'en recoit jamais, et les lecteurs qui
+             fonctionnent deja ne changent pas de comportement. */
+          var APPUIS_MAX = 2;
+          var appuisDemandes = 0;
+
+          function demanderAppui() {
+            if (appuisDemandes >= APPUIS_MAX) { return false; }
+            appuisDemandes++;
+            prevenir('onAppuiRequis');
+            return true;
+          }
+
           /* --- 1. CSS anti-overlay ------------------------------------------- */
           try {
             var style = document.createElement('style');
@@ -104,27 +188,37 @@ internal object OverlayScripts {
           }
 
           function estOverlay(element) {
-            var style = window.getComputedStyle ? window.getComputedStyle(element) : null;
+            /* La mesure se fait dans la fenetre du document de l'element : celui-ci
+               peut venir d'un cadre, dont les dimensions ne sont pas les notres. */
+            var fenetre = (element.ownerDocument && element.ownerDocument.defaultView) || window;
+            var style = fenetre.getComputedStyle ? fenetre.getComputedStyle(element) : null;
             if (!style) { return false; }
             if (style.position !== 'fixed' && style.position !== 'absolute') { return false; }
             var couche = parseInt(style.zIndex, 10);
             if (isNaN(couche) || couche < 1000) { return false; }
             var cadre = element.getBoundingClientRect();
-            var ecran = window.innerWidth * window.innerHeight;
+            var ecran = fenetre.innerWidth * fenetre.innerHeight;
             if (ecran <= 0) { return false; }
             return (cadre.width * cadre.height) / ecran > 0.35;
           }
 
           function nettoyer() {
-            if (!document.body) { return; }
-            var candidats = document.body.querySelectorAll('div, span, a, ins, aside, section');
+            var docs = documentsAccessibles();
             var masques = 0;
-            for (var i = 0; i < candidats.length; i++) {
-              var element = candidats[i];
-              if (contientLecteur(element)) { continue; }
-              if (estOverlay(element)) {
-                element.style.setProperty('display', 'none', 'important');
-                masques++;
+            for (var d = 0; d < docs.length; d++) {
+              var corps = docs[d].body;
+              if (!corps) { continue; }
+              var candidats;
+              try {
+                candidats = corps.querySelectorAll('div, span, a, ins, aside, section');
+              } catch (e) { continue; }
+              for (var i = 0; i < candidats.length; i++) {
+                var element = candidats[i];
+                if (contientLecteur(element)) { continue; }
+                if (estOverlay(element)) {
+                  element.style.setProperty('display', 'none', 'important');
+                  masques++;
+                }
               }
             }
             if (masques > 0) { prevenir('onOverlaysMasques', masques); }
@@ -146,6 +240,16 @@ internal object OverlayScripts {
               minuterieDemarrage = null;
               if (demarrageConfirme || echecSignale || pauseDemandee) { return; }
               if ((video.currentTime || 0) > SEUIL_DEMARRAGE_S) { return; }
+
+              /* Rien n'a defile. Avant de condamner ce lecteur, on lui donne le geste
+                 qu'il attend peut-etre — couche a ecarter, publicite a passer — et un
+                 second delai. Sans ce sursis, une page a coupure publicitaire etait
+                 declaree injouable alors qu'elle n'avait jamais ete touchee. */
+              if (demanderAppui()) {
+                armerDemarrage(video);
+                return;
+              }
+
               echecSignale = true;
               prevenir('onDemarrageImpossible');
             }, DELAI_DEMARRAGE_MS);
@@ -180,7 +284,7 @@ internal object OverlayScripts {
           }
 
           function hauteurCourante() {
-            var video = document.querySelector('video');
+            var video = trouverVideo();
             if (!video) { return 0; }
             return video.videoHeight || 0;
           }
@@ -222,7 +326,7 @@ internal object OverlayScripts {
               } catch (e) {}
             }
 
-            var video = document.querySelector('video');
+            var video = trouverVideo();
             var sources = video ? video.querySelectorAll('source') : [];
             if (sources.length > 1) {
               for (var k = 0; k < sources.length; k++) {
@@ -257,7 +361,7 @@ internal object OverlayScripts {
           }
 
           window.allAnimeChoisirQualite = function (id) {
-            var video = document.querySelector('video');
+            var video = trouverVideo();
             try {
               var hls = instanceHls();
               if (hls && (id === 'auto' || id.indexOf('hls:') === 0)) {
@@ -299,7 +403,7 @@ internal object OverlayScripts {
           /* --- 6. Video : detection, autoplay, fin de lecture ----------------- */
           var videoSuivie = null;
           function brancherVideo() {
-            var video = document.querySelector('video');
+            var video = trouverVideo();
             if (!video) { return false; }
             if (video === videoSuivie) { return true; }
             videoSuivie = video;
@@ -405,8 +509,25 @@ internal object OverlayScripts {
             if (brancherVideo()) {
               clearInterval(minuterie);
             } else if (essais > ESSAIS_MAX) {
+              /* Meme sursis : la balise video n'existe parfois qu'apres le premier
+                 geste, et la reclamer plus longtemps ne la ferait pas apparaitre. */
+              if (demanderAppui()) {
+                essais = 0;
+                return;
+              }
+
               clearInterval(minuterie);
-              prevenir('onAucuneVideo');
+
+              /* Aucune video atteignable. Reste a savoir si elle n'existe pas, ou si
+                 elle est dans un cadre d'une autre origine — auquel cas elle joue
+                 peut-etre tres bien, et declarer le lecteur mort couperait une lecture
+                 en cours pour en essayer une autre. */
+              var externe = cadreExterne();
+              if (externe) {
+                prevenir('onLecteurEnCadreExterne', externe);
+              } else {
+                prevenir('onAucuneVideo');
+              }
             }
           }, 800);
 
@@ -415,19 +536,19 @@ internal object OverlayScripts {
 
           /* --- 8. Commandes appelees depuis l'application --------------------- */
           window.allAnimeLire = function () {
-            var video = document.querySelector('video');
+            var video = trouverVideo();
             pauseDemandee = false;
             if (video) { try { video.play(); } catch (e) {} }
           };
           window.allAnimePause = function () {
-            var video = document.querySelector('video');
+            var video = trouverVideo();
             /* Une pause voulue par l'utilisateur ne doit pas etre prise pour un
                lecteur qui refuse de demarrer. */
             pauseDemandee = true;
             if (video) { try { video.pause(); } catch (e) {} }
           };
           window.allAnimeBasculer = function () {
-            var video = document.querySelector('video');
+            var video = trouverVideo();
             if (!video) { return; }
             try {
               if (video.paused) { pauseDemandee = false; video.play(); }
@@ -435,13 +556,13 @@ internal object OverlayScripts {
             } catch (e) {}
           };
           window.allAnimeAvancer = function (secondes) {
-            var video = document.querySelector('video');
+            var video = trouverVideo();
             if (video && !isNaN(video.currentTime)) {
               try { video.currentTime = video.currentTime + secondes; } catch (e) {}
             }
           };
           window.allAnimeAllerA = function (secondes) {
-            var video = document.querySelector('video');
+            var video = trouverVideo();
             if (!video) { return; }
             try { video.currentTime = secondes; } catch (e) {}
           };
