@@ -19,6 +19,16 @@ object AppConfig {
      */
     val baseUrl: String = BuildConfig.BASE_URL.trimEnd('/')
 
+    /**
+     * Racine du site de lecture, sans slash final. Provient du secret Infisical
+     * `BASE_URL_LIS`.
+     *
+     * Ce n'est pas le meme site que [baseUrl]. C'est une seconde source de saisons,
+     * d'episodes et de lecteurs, interrogee en plus du catalogue et jamais a sa place
+     * (voir `LisScraper` et `CatalogueRepository`).
+     */
+    val lisBaseUrl: String = BuildConfig.BASE_URL_LIS.trimEnd('/')
+
     /** Endpoint GraphQL AniList. */
     val aniListEndpoint: String = BuildConfig.ANILIST_ENDPOINT
 

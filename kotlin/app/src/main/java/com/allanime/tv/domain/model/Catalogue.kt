@@ -78,9 +78,19 @@ data class Saison(
  */
 data class Episode(
     val numero: Int,
-    val lecteurs: List<Lecteur>
+    val lecteurs: List<Lecteur>,
+    /**
+     * Page de l'episode sur le site, quand ses lecteurs ne sont pas encore lus.
+     *
+     * Le site declare les lecteurs episode par episode : les lire tous pour afficher
+     * une saison couterait une requete par episode. La liste est donc rendue sans
+     * eux, et `CatalogueRepository.lecteurs` les complete au moment de lancer la
+     * lecture.
+     */
+    val url: String? = null
 ) {
-    val estDisponible: Boolean get() = lecteurs.isNotEmpty()
+    /** Lisible : ses lecteurs sont connus, ou sa page permet de les obtenir. */
+    val estDisponible: Boolean get() = lecteurs.isNotEmpty() || url != null
 }
 
 /**

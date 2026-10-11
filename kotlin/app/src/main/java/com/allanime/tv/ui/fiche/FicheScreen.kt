@@ -696,11 +696,11 @@ private fun VignetteEpisode(
     CarteEpisodePaysage(
         numero = stringResource(R.string.label_episode, episode.numero),
         titre = vignette?.titreCourt,
-        detail = pluralStringResource(
-            R.plurals.label_players_count,
-            episode.lecteurs.size,
-            episode.lecteurs.size
-        ),
+        // Les lecteurs ne sont lus qu'au lancement de l'episode : tant qu'ils ne le
+        // sont pas, mieux vaut ne rien annoncer qu'afficher « 0 lecteur ».
+        detail = episode.lecteurs.size.takeIf { it > 0 }?.let { nombre ->
+            pluralStringResource(R.plurals.label_players_count, nombre, nombre)
+        }.orEmpty(),
         // A defaut de capture, la jaquette de la serie : aucune carte ne doit etre un
         // rectangle gris.
         imageUrl = vignette?.thumbnail ?: anime.bestCover,

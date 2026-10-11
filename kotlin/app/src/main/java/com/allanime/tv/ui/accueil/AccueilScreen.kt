@@ -47,6 +47,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.allanime.tv.R
+import com.allanime.tv.core.UiState
 import com.allanime.tv.domain.model.AnimeCatalogue
 import com.allanime.tv.domain.model.ProgressionAnime
 import com.allanime.tv.domain.model.SortiePlanning
@@ -84,18 +85,26 @@ import kotlinx.coroutines.delay
  * de la lire.
  *
  * @param margeDebut place laissee au rail de la barre laterale.
+ * @param onPret appele des que le catalogue a repondu : c'est le signal qui retire
+ *   l'ecran de demarrage.
  */
 @Composable
 fun AccueilScreen(
     margeDebut: Dp,
     onOuvrirCatalogue: (String) -> Unit,
     onReprendre: (ProgressionAnime) -> Unit,
+    onPret: () -> Unit = {},
     viewModel: AccueilViewModel = viewModel(factory = AccueilViewModel.factory())
 ) {
     val etat by viewModel.etat.collectAsState()
     val reprises by viewModel.reprises.collectAsState()
     val sortiesDuJour by viewModel.sortiesDuJour.collectAsState()
     val rangees by viewModel.rangees.collectAsState()
+
+    // Catalogue affiche, vide ou en echec : dans les trois cas il y a quelque chose
+    // a montrer, et l'ecran de demarrage n'a plus de raison de le cacher.
+    val pret = etat !is UiState.Loading
+    LaunchedEffect(pret) { if (pret) onPret() }
 
     Box(modifier = Modifier.fillMaxSize().background(InkBackground)) {
         ContenuSelonEtat(

@@ -30,10 +30,17 @@ internal object AniListQueries {
         "streamingEpisodes { title thumbnail url site } " +
         "trailer { id site thumbnail } siteUrl updatedAt"
 
-    /** Recherche par titre ; la valeur est passee via la variable `search`. */
+    /**
+     * Recherche par titre ; la valeur est passee via la variable `search`.
+     *
+     * Les animes de genre Hentai sont ecartes des la requete, pour que la page rendue
+     * soit pleine de resultats affichables plutot qu'amputee apres coup.
+     * `AnimeRepository` refait le tri de son cote : c'est lui qui fait foi.
+     */
     fun search(perPage: Int): String =
         "query (${'$'}search: String) { Page(perPage: $perPage) " +
-            "{ media(search: ${'$'}search, type: ANIME) { $MEDIA_FIELDS } } }"
+            "{ media(search: ${'$'}search, type: ANIME, genre_not_in: [\"Hentai\"]) " +
+            "{ $MEDIA_FIELDS } } }"
 
     /**
      * Fiche unique par identifiant. Utilisee quand l'application revient sur une fiche

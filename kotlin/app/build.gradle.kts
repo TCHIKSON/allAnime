@@ -226,14 +226,20 @@ android {
         applicationId = "com.allanime.tv"
         minSdk = 23
         targetSdk = 34
-        versionCode = 12
-        versionName = "2.1"
+        versionCode = 15
+        versionName = "2.4"
 
         // Racine du catalogue : secret Infisical, jamais versionne dans le `.env`.
         buildConfigField(
             "String",
             "BASE_URL",
             asBuildConfigString(infisicalSecret("BASE_URL_2A"))
+        )
+        // Racine du site de lecture : seconde source des saisons et des episodes.
+        buildConfigField(
+            "String",
+            "BASE_URL_LIS",
+            asBuildConfigString(infisicalSecret("BASE_URL_LIS"))
         )
         buildConfigField(
             "String",

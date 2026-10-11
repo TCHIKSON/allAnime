@@ -51,12 +51,13 @@ Toute la configuration réseau est lue **au moment du build** par
 dans les écrans ou les ViewModels ; `com.allanime.tv.core.AppConfig` est le seul
 point d'accès.
 
-La racine du catalogue est un **secret Infisical** : elle n'est pas versionnée. Le
-reste vient de `kotlin/.env`.
+Les deux racines — catalogue et site de lecture — sont des **secrets Infisical** :
+elles ne sont pas versionnées. Le reste vient de `kotlin/.env`.
 
 | Clef | Source | Rôle |
 | --- | --- | --- |
 | `BASE_URL_2A` | Infisical | Racine du catalogue. L'URL d'un anime est `BASE_URL_2A/<slug>/`, la liste de l'accueil `BASE_URL_2A/?type[]=Anime&…`. Le dernier segment `/catalogue` est remplacé par `/planning` pour le planning et par `/template-php/defaut/fetch.php` pour le moteur de recherche. |
+| `BASE_URL_LIS` | Infisical | Racine du site de lecture, seconde source des saisons, des épisodes et de leurs lecteurs, **en plus** du catalogue : la fiche y est retrouvée par le titre (`/template-php/defaut/fetch.php`), puis lue à `BASE_URL_LIS/<slug>/`. |
 | `ANILIST_ENDPOINT` | `.env` | Endpoint GraphQL AniList. |
 | `PLAYER_USER_AGENT` | `.env` | User-Agent du WebView du lecteur. |
 | `SCRAPER_USER_AGENT` | `.env` | User-Agent des requêtes de scraping. |
@@ -81,7 +82,7 @@ infisical.host=https://eu.infisical.com
 | --- | --- | --- |
 | `infisical.clientId` | Identité machine (Access Control > Identities). | obligatoire |
 | `infisical.clientSecret` | Secret de cette identité. | obligatoire |
-| `infisical.projectId` | Projet contenant `BASE_URL_2A`. | obligatoire |
+| `infisical.projectId` | Projet contenant `BASE_URL_2A` et `BASE_URL_LIS`. | obligatoire |
 | `infisical.host` | Région : `https://eu.infisical.com`, `https://app.infisical.com`, ou instance auto-hébergée. | `https://app.infisical.com` |
 | `infisical.environment` | Environnement du secret. | `dev` |
 | `infisical.secretPath` | Chemin du secret dans le projet. | `/` |
@@ -94,8 +95,9 @@ priorité sur le fichier : `INFISICAL_CLIENT_ID`, `INFISICAL_CLIENT_SECRET`,
 forme utilisée en CI, où rien n'est écrit sur le disque. L'identité machine n'a besoin
 que du droit de **lecture** sur le projet.
 
-Plus court encore en CI : définir directement la variable `BASE_URL_2A`. Le build la
-prend telle quelle et n'appelle pas l'API.
+Plus court encore en CI : définir directement les variables `BASE_URL_2A` et
+`BASE_URL_LIS`. Le build les
+prend telles quelles et n'appelle pas l'API.
 
 Un identifiant absent, une identité refusée ou un secret introuvable **font échouer le
 build** avec un message explicite, plutôt que de retomber silencieusement sur une
@@ -136,7 +138,7 @@ kotlin/
 │   │   └── lecteur/   WebView, barre de transport, réglages
 │   ├── di/            ServiceLocator (assemblage manuel)
 │   └── MainActivity   activité unique, lecteur compris
-├── scripts/           saisson.js + episode.js — scripts Node de référence
+├── scripts/           lis.js, saisson.js, episode.js — scripts Node de référence
 │                   et ../lecteur-videos/parser{Catalogue,Planning}.js
 ├── tools/             Générateur des visuels de marque (bannière, icônes)
 │   └── logos-source/  Logos fournis, avant détourage — non compilés
@@ -164,8 +166,11 @@ Séries / Films ── catalogue filtré ─────────┼─► Pa
 Planning ──────── semaine complète ─────────┤     │  → recherche AniList sur le titre
                                             │     │  → BASE_URL_2A/<slug>/
 Recherche ─────── AniList ──────────────────┘     │  → saisons (scraping)
-                                                  │  → langues (sondage HTTP)
+  clavier ou voix, Hentai écartés                 │  → langues (sondage HTTP)
                                                   │  → épisodes (episodes.js)
+                                                  │  + en parallèle, BASE_URL_LIS :
+                                                  │    fiche retrouvée par le titre,
+                                                  │    saisons absentes du catalogue
                                                   └─► Lecteur WebView
 ```
 
@@ -694,21 +699,36 @@ dans une autre hiérarchie et la télécommande s'y perd.
 ## 5. Port des scripts Node
 
 Android n'embarque pas Node : la logique des scripts de référence est portée en
-Kotlin (OkHttp + Jsoup + analyse syntaxique). Cinq scripts, cinq ports :
+Kotlin (OkHttp + Jsoup + analyse syntaxique). Six scripts, six ports :
 
 | Script de référence | Port Kotlin | Rôle |
 | --- | --- | --- |
 | `../lecteur-videos/parserCatalogue.js` | `CatalogueListeScraper` | Liste du catalogue → accueil |
 | `../lecteur-videos/parserPlanning.js` | `PlanningScraper` | Planning hebdomadaire |
 | `../lecteur-videos/parserSearch.js` | `RechercheCatalogueScraper` | Confirmation du slug d'une série |
-| `scripts/saisson.js` | `SaisonsScraper` | Saisons et langues d'une série |
-| `scripts/episode.js` | `EpisodesScraper` | Épisodes et lecteurs |
+| `scripts/lis.js` | `LisScraper` | Seconde source, en plus des deux suivantes : saisons, épisodes et lecteurs à partir de `BASE_URL_LIS` et du titre de la fiche |
+| `scripts/saisson.js` | `SaisonsScraper` | Saisons et langues d'une série sur le catalogue |
+| `scripts/episode.js` | `EpisodesScraper` | Épisodes et lecteurs sur le catalogue |
 
 Les scripts restent dans le dépôt comme **référence exécutable** :
 
 ```bash
 node scripts/saisson.js "https://<base>/<slug>/"
+infisical run -- node scripts/lis.js "titre de l'anime" --summary
 ```
+
+`lis.js` parcourt tous les épisodes pour produire son JSON d'un bloc. `LisScraper`
+lit les mêmes pages **à la demande** : la fiche à l'ouverture de la série, la page
+d'un groupe quand on le sélectionne, les lecteurs d'un épisode quand on le lance.
+Sans cela, ouvrir une saga de deux cents épisodes coûterait deux cents requêtes.
+
+Les deux méthodes sont lancées ensemble par `CatalogueRepository` et **aucune ne
+remplace l'autre** : les saisons du catalogue gardent leur place, celles que seul le
+site de lecture connaît sont ajoutées à la suite, et il suffit à rendre lisible une
+série que le catalogue n'a pas. Son moteur de recherche est littéral — « Sousou no
+Frieren » ne rend rien, « Frieren » rend la fiche : `RechercheLis` décline donc
+chaque titre de la fiche détaillée en plusieurs requêtes et ne retient qu'un résultat
+qui porte ce titre.
 
 Les ports reproduisent la même séquence et la même sortie. Les écarts sont tous
 délibérés et commentés sur place :
@@ -910,7 +930,7 @@ java tools/BrandAssetGenerator.java app/src/main/res
 
 ### Logo et états sans contenu
 
-Deux images portent la marque dans l'interface, à la place des formes dessinées en
+Quatre images portent la marque dans l'interface, à la place des formes dessinées en
 Compose qu'elles remplaçaient :
 
 | Ressource              | Emploi                                                        |
@@ -918,6 +938,7 @@ Compose qu'elles remplaçaient :
 | `app_logo`             | En haut à gauche de l'accueil et de la recherche (`LogoAllAnime`) |
 | `app_logo_no_data`     | Au-dessus de tout message d'état vide ou en échec (`BlocMessage`) |
 | `app_logo_exite`       | Confirmation de sortie (`DialogueSortie`)                      |
+| `app_logo_run`         | Démarrage : fond de fenêtre puis `EcranDemarrage`, jusqu'à la fin du chargement de l'accueil |
 
 `BlocMessage` couvrant les quatre états de `UiState`, l'illustration apparaît
 partout où l'application n'a rien à montrer : saison sans épisode disponible,

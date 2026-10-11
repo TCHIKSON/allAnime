@@ -31,6 +31,7 @@ import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import com.allanime.tv.R
 import com.allanime.tv.ui.navigation.IconeEffacer
+import com.allanime.tv.ui.navigation.IconeMicro
 import com.allanime.tv.ui.theme.Coral
 import com.allanime.tv.ui.theme.Focus
 import com.allanime.tv.ui.theme.FocusGlow
@@ -134,6 +135,11 @@ private val PAGE_SYMBOLES: List<List<Touche>> = buildList {
 }
 
 /**
+ * @param onVocal lance la recherche vocale. La touche occupe une rangee entiere sous
+ *   les actions, commune aux deux pages : elle ne change donc pas de place quand on
+ *   bascule de l'une a l'autre.
+ * @param ecouteVocale `true` pendant que le micro ecoute : la touche le dit, et un
+ *   second appui arrete l'ecoute.
  * @param premiereTouche recoit le focus a l'ouverture de l'ecran.
  */
 @Composable
@@ -141,6 +147,8 @@ fun ClavierVirtuel(
     onCaractere: (String) -> Unit,
     onEspace: () -> Unit,
     onEffacer: () -> Unit,
+    onVocal: () -> Unit,
+    ecouteVocale: Boolean,
     premiereTouche: FocusRequester,
     modifier: Modifier = Modifier
 ) {
@@ -220,6 +228,36 @@ fun ClavierVirtuel(
                         }
                     }
                 }
+            }
+        }
+
+        SurfaceTouche(
+            onClick = onVocal,
+            modifier = Modifier
+                .width(gabarit.largeurClavier)
+                .height(gabarit.coteTouche)
+        ) { focalisee ->
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(gabarit.espacementTouche),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconeMicro(
+                    // Corail pendant l'ecoute, meme sous le focus : c'est le
+                    // temoin « micro ouvert ».
+                    couleur = if (focalisee && !ecouteVocale) InkBackground else Coral,
+                    taille = gabarit.coteTouche * 0.5f
+                )
+                Text(
+                    text = stringResource(
+                        if (ecouteVocale) {
+                            R.string.search_voice_listening
+                        } else {
+                            R.string.search_voice
+                        }
+                    ),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = encreTouche(focalisee)
+                )
             }
         }
     }

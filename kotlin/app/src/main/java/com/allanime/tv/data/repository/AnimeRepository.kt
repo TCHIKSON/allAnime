@@ -27,17 +27,27 @@ class AnimeRepository(
     /** Titre de catalogue slugifie vers identifiant AniList, pour ne chercher qu'une fois. */
     private val parTitre = ConcurrentHashMap<String, Int>()
 
-    /** Recherche AniList ; les resultats alimentent aussi le cache des fiches. */
+    /**
+     * Recherche AniList ; les resultats alimentent aussi le cache des fiches.
+     *
+     * Les animes Hentai sont retires de la reponse : ils n'apparaissent ni dans
+     * l'ecran de recherche, ni comme fiche retrouvee a partir d'un titre du catalogue.
+     */
     suspend fun rechercher(requete: String): List<Anime> {
-        val resultat = service.search(requete.trim())
+        val resultat = service.search(requete.trim()).filterNot { it.estHentai }
         resultat.forEach { parId[it.id] = it }
         return resultat
     }
 
-    /** Fiche complete, depuis le cache si possible, sinon rechargee depuis AniList. */
+    /**
+     * Fiche complete, depuis le cache si possible, sinon rechargee depuis AniList.
+     *
+     * Une fiche Hentai est rendue comme introuvable : sans cela, une recommandation
+     * ou un lien direct ouvrirait ce que la recherche vient d'ecarter.
+     */
     suspend fun fiche(id: Int): Anime? {
         parId[id]?.let { return it }
-        return service.byId(id)?.also { parId[id] = it }
+        return service.byId(id)?.takeUnless { it.estHentai }?.also { parId[id] = it }
     }
 
     /**

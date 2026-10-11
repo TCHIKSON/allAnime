@@ -165,7 +165,16 @@ class FicheViewModel(
                 ?: entree?.versAnime()?.also { animeRepository.memoriser(it) }
 
             trouve
-                ?.also { catalogueRepository.associer(it.id, reference.slug) }
+                ?.also {
+                    catalogueRepository.associer(it.id, reference.slug)
+                    // Le site de lecture retrouve la serie par son titre : on lui
+                    // donne ceux que cette fiche affiche, carte du catalogue en tete.
+                    catalogueRepository.declarerTitres(
+                        it.id,
+                        entree?.let { carte -> listOf(carte.titre) + carte.titresAlternatifs }
+                            ?: titres
+                    )
+                }
                 ?.let { Resolution(it, carte = entree) }
         }
     }

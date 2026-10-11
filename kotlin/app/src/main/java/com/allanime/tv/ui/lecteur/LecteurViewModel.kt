@@ -145,15 +145,24 @@ class LecteurViewModel(
             }
 
             runCatchingCancellable {
-                catalogueRepository.episodes(requireNotNull(anime), langue)
+                val liste = catalogueRepository.episodes(requireNotNull(anime), langue)
+                    .filter { it.estDisponible }
+                val demande = liste.firstOrNull { it.numero == numeroEpisode }
+                    ?: liste.firstOrNull()
+
+                // La liste arrive sans lecteurs : seuls ceux de l'episode qu'on lance
+                // sont lus, les autres le seront quand on y passera.
+                liste to demande?.let { catalogueRepository.lecteurs(langue, it) }
             }
-                .onSuccess { liste ->
-                    episodes = liste.filter { it.estDisponible }
-                    val episode = episodes.firstOrNull { it.numero == numeroEpisode }
-                        ?: episodes.firstOrNull()
+                .onSuccess { (liste, episode) ->
+                    episodes = liste
 
                     if (episode == null) {
                         _etat.value = UiState.Empty(R.string.empty_episodes)
+                        return@onSuccess
+                    }
+                    if (episode.lecteurs.isEmpty()) {
+                        _etat.value = UiState.Empty(R.string.empty_players)
                         return@onSuccess
                     }
 
@@ -351,14 +360,27 @@ class LecteurViewModel(
         val position = episodes.indexOfFirst { it.numero == selection.episode.numero }
         if (position < 0) return false
 
-        val cible = episodes.getOrNull(position + decalage) ?: return false
-
-        _positionReprise.value = 0
-        derniereSauvegarde = 0
-        positionCourante = 0
-        _etat.value = UiState.Success(selection.copy(episode = cible))
+        val voisin = episodes.getOrNull(position + decalage) ?: return false
 
         viewModelScope.launch {
+            // Les lecteurs du voisin ne sont lus que maintenant : l'episode en cours
+            // reste a l'ecran le temps de cette lecture.
+            val cible = runCatchingCancellable {
+                catalogueRepository.lecteurs(selection.langue, voisin)
+            }.getOrElse { erreur ->
+                _etat.value = UiState.Failure(erreur.toAppError())
+                return@launch
+            }
+            if (cible.lecteurs.isEmpty()) {
+                _etat.value = UiState.Empty(R.string.empty_players)
+                return@launch
+            }
+
+            _positionReprise.value = 0
+            derniereSauvegarde = 0
+            positionCourante = 0
+            _etat.value = UiState.Success(selection.copy(episode = cible))
+
             preparerTentatives(cible)
             episodesOuverts = episodesOuverts.let { connus ->
                 connus + (indexSaison to (connus[indexSaison].orEmpty() + cible.numero))

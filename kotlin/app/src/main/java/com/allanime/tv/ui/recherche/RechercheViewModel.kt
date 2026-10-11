@@ -124,6 +124,29 @@ class RechercheViewModel(
         surSaisie("")
     }
 
+    /**
+     * Titre dicte a la recherche vocale.
+     *
+     * Il remplace la saisie, et la recherche part sans la temporisation du clavier :
+     * une phrase dictee arrive entiere, il n'y a pas de frappe suivante a attendre.
+     */
+    fun dicter(texte: String) {
+        val titre = texte.trim()
+        if (titre.isEmpty()) return
+
+        _requete.value = titre
+        lancer(titre, temporiser = false)
+    }
+
+    /**
+     * Texte reconnu en cours de dictee : il s'affiche dans le champ, sans rien
+     * chercher. Une phrase a moitie entendue donnerait des resultats qui sautent.
+     */
+    fun afficherDictee(texte: String) {
+        recherche?.cancel()
+        _requete.value = texte
+    }
+
     /** Le bouton « Rechercher » et la touche OK cherchent sans attendre. */
     fun relancer() {
         lancer(_requete.value, temporiser = false)

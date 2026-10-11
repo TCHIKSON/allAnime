@@ -4,6 +4,27 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!--
+        Recherche vocale : l'application ecoute elle-meme, pour rester a l'ecran
+        pendant la dictee. Le micro n'est pas exige (un televiseur sans micro garde
+        la recherche au clavier) et la permission n'est demandee qu'au premier appui
+        sur la touche.
+    -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
+
+    <!-- Depuis Android 11, le service de reconnaissance doit etre declare pour etre vu. -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <intent>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+        </intent>
+    </queries>
+
     <!-- Application Android TV : pas d'ecran tactile, navigation D-pad obligatoire. -->
     <uses-feature
         android:name="android.software.leanback"
@@ -33,7 +54,7 @@
             android:exported="true"
             android:launchMode="singleTask"
             android:screenOrientation="landscape"
-            android:theme="@style/Theme.AllAnime">
+            android:theme="@style/Theme.AllAnime.Demarrage">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />

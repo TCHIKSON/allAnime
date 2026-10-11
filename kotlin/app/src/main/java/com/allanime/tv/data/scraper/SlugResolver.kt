@@ -6,6 +6,7 @@ import com.allanime.tv.core.Slugifier
 import com.allanime.tv.core.runCatchingCancellable
 import com.allanime.tv.data.net.await
 import com.allanime.tv.domain.model.CorrespondanceCatalogue
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -34,6 +35,16 @@ class SlugResolver(
     private val rechercheScraper: RechercheCatalogueScraper,
     private val userAgent: String = AppConfig.scraperUserAgent
 ) {
+
+    private val titresParSlug = ConcurrentHashMap<String, List<String>>()
+
+    /**
+     * Titres sous lesquels le catalogue connait la fiche [slug], quand c'est son
+     * moteur de recherche qui l'a confirmee : son titre, puis ses titres alternatifs.
+     *
+     * Vide pour un slug obtenu par sondage, dont on ne connait que l'adresse.
+     */
+    fun titres(slug: String): List<String> = titresParSlug[slug].orEmpty()
 
     /**
      * @param candidats titres a essayer, du plus probable au moins probable.
@@ -78,8 +89,19 @@ class SlugResolver(
                 .getOrNull()
                 ?: continue
 
-            val retenu = CorrespondanceCatalogue.choisir(titre, resultats) ?: continue
+            // Une forme raccourcie (« THE LAST » pour « THE LAST: NARUTO THE MOVIE »)
+            // ne vaut que si une fiche porte exactement ce nom : la chercher dans un
+            // titre plus long ramenerait la premiere serie qui commence pareil.
+            val abrege = candidats.any { autre ->
+                autre.length > titre.length && autre.startsWith(titre, ignoreCase = true)
+            }
+            val retenu = if (abrege) {
+                CorrespondanceCatalogue.choisirExact(titre, resultats)
+            } else {
+                CorrespondanceCatalogue.choisir(titre, resultats)
+            } ?: continue
             Log.i(TAG, "Slug confirme par la recherche : ${retenu.slug}")
+            titresParSlug[retenu.slug] = listOf(retenu.titre) + retenu.sousTitres
             return retenu.slug
         }
 

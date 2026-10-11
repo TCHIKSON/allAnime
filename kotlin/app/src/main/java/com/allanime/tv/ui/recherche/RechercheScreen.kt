@@ -89,6 +89,9 @@ import com.allanime.tv.ui.theme.haloFocus
  * Tant que rien n'est saisi, la colonne de droite montre ce que le planning annonce
  * plutot qu'un ecran vide.
  *
+ * La derniere touche du clavier lance la **recherche vocale** ([rememberDicteeVocale]) :
+ * le titre dicte remplace la saisie et la recherche part aussitot.
+ *
  * @param margeDebut place laissee au rail de la barre laterale.
  */
 @Composable
@@ -117,6 +120,13 @@ fun RechercheScreen(
         runCatching { premiereTouche.requestFocus() }
     }
 
+    // Le texte entendu s'ecrit dans le champ au fil de la phrase ; la recherche,
+    // elle, ne part qu'une fois la phrase terminee.
+    val dictee = rememberDicteeVocale(
+        onPartiel = viewModel::afficherDictee,
+        onResultat = viewModel::dicter
+    )
+
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -142,8 +152,18 @@ fun RechercheScreen(
                 onCaractere = viewModel::ajouter,
                 onEspace = { viewModel.ajouter(" ") },
                 onEffacer = viewModel::effacer,
+                onVocal = dictee::basculer,
+                ecouteVocale = dictee.enEcoute,
                 premiereTouche = premiereTouche
             )
+
+            dictee.message?.let { message ->
+                Text(
+                    text = stringResource(message),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MistGrey
+                )
+            }
         }
 
         Box(modifier = Modifier.fillMaxSize()) {

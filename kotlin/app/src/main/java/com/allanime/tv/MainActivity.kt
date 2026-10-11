@@ -21,6 +21,10 @@ import com.allanime.tv.ui.theme.InkBackground
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Le theme de demarrage n'a servi qu'a montrer l'illustration avant la
+        // premiere image : on rend a la fenetre son fond uni, sans quoi l'image
+        // resterait en memoire, dessinee sous tous les ecrans.
+        setTheme(R.style.Theme_AllAnime)
         super.onCreate(savedInstanceState)
 
         // L'ecran reste allume pendant la lecture.

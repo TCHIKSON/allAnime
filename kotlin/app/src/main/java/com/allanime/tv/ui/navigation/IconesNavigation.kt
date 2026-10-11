@@ -232,6 +232,48 @@ fun IconeEffacer(couleur: Color, modifier: Modifier = Modifier, taille: Dp = 22.
     }
 }
 
+/** Recherche vocale : un micro sur son pied. */
+@Composable
+fun IconeMicro(couleur: Color, modifier: Modifier = Modifier, taille: Dp = 22.dp) {
+    Canvas(modifier = modifier.size(taille)) {
+        val trait = size.minDimension * 0.09f
+
+        // La capsule.
+        drawRoundRect(
+            color = couleur,
+            topLeft = Offset(size.width * 0.37f, size.height * 0.10f),
+            size = Size(size.width * 0.26f, size.height * 0.46f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.width * 0.13f),
+            style = Stroke(width = trait)
+        )
+        // L'etrier qui la porte : un demi-cercle ouvert vers le haut.
+        drawArc(
+            color = couleur,
+            startAngle = 0f,
+            sweepAngle = 180f,
+            useCenter = false,
+            topLeft = Offset(size.width * 0.24f, size.height * 0.18f),
+            size = Size(size.width * 0.52f, size.height * 0.52f),
+            style = Stroke(width = trait, cap = StrokeCap.Round)
+        )
+        // Le pied et son socle.
+        drawLine(
+            color = couleur,
+            start = Offset(size.width * 0.50f, size.height * 0.70f),
+            end = Offset(size.width * 0.50f, size.height * 0.88f),
+            strokeWidth = trait,
+            cap = StrokeCap.Round
+        )
+        drawLine(
+            color = couleur,
+            start = Offset(size.width * 0.36f, size.height * 0.88f),
+            end = Offset(size.width * 0.64f, size.height * 0.88f),
+            strokeWidth = trait,
+            cap = StrokeCap.Round
+        )
+    }
+}
+
 private fun DrawScope.drawCroix(couleur: Color, trait: Float) {
     drawLine(
         color = couleur,

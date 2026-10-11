@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Fond de la fenetre pendant le demarrage a froid : l'illustration s'affiche avant
+    meme que l'application ait dessine sa premiere image. MainActivity repasse ensuite
+    sur le theme courant, et `EcranDemarrage` prend le relais jusqu'a la fin du
+    chargement de l'accueil.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/ink_background" />
+    <item>
+        <bitmap
+            android:gravity="fill"
+            android:src="@drawable/app_logo_run" />
+    </item>
+</layer-list>

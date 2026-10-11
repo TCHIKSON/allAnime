@@ -78,6 +78,24 @@ data class Anime(
             ajouterCandidat(title.nativeTitle)
         }.distinct()
 
+    /**
+     * Titres de l'oeuvre tels qu'AniList les donne, **sans leurs formes raccourcies**.
+     *
+     * Une forme raccourcie n'identifie pas une oeuvre a elle seule : « THE LAST »,
+     * debut de « THE LAST: NARUTO THE MOVIE », est aussi le debut de « The Last
+     * Summoner ». Ces titres-ci peuvent etre cherches dans un titre plus long ; les
+     * formes courtes de [candidatsCatalogue], elles, ne valent que par egalite.
+     */
+    val titresComplets: List<String>
+        get() = (listOfNotNull(title.romaji, title.english) + synonyms + listOfNotNull(title.nativeTitle))
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+
+    /** `true` pour un anime de genre Hentai, que l'application ne propose pas. */
+    val estHentai: Boolean
+        get() = genres.any { it.equals("Hentai", ignoreCase = true) }
+
     /** Meilleure image de jaquette disponible. */
     val bestCover: String?
         get() = coverImage.extraLarge ?: coverImage.large ?: coverImage.medium

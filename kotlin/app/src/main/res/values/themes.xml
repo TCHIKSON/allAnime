@@ -6,4 +6,13 @@
         <item name="android:navigationBarColor">@color/ink_background</item>
         <item name="android:statusBarColor">@color/ink_background</item>
     </style>
+
+    <!--
+        Theme de l'activite au lancement seulement : son fond de fenetre montre
+        l'illustration de demarrage avant la premiere image de l'application.
+        MainActivity repasse sur Theme.AllAnime des son onCreate.
+    -->
+    <style name="Theme.AllAnime.Demarrage">
+        <item name="android:windowBackground">@drawable/fond_demarrage</item>
+    </style>
 </resources>

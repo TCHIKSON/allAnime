@@ -12,6 +12,7 @@ import com.allanime.tv.data.repository.CatalogueListeRepository
 import com.allanime.tv.data.repository.CatalogueRepository
 import com.allanime.tv.data.scraper.CatalogueListeScraper
 import com.allanime.tv.data.scraper.EpisodesScraper
+import com.allanime.tv.data.scraper.LisScraper
 import com.allanime.tv.data.scraper.PlanningScraper
 import com.allanime.tv.data.scraper.RechercheCatalogueScraper
 import com.allanime.tv.data.scraper.SaisonsScraper
@@ -50,6 +51,8 @@ object ServiceLocator {
 
     private val saisonsScraper by lazy { SaisonsScraper(HttpClients.shared, episodesScraper) }
 
+    private val lisScraper by lazy { LisScraper(HttpClients.shared) }
+
     private val rechercheCatalogueScraper by lazy {
         RechercheCatalogueScraper(HttpClients.shared)
     }
@@ -65,7 +68,7 @@ object ServiceLocator {
     val animeRepository: AnimeRepository by lazy { AnimeRepository(aniListService) }
 
     val catalogueRepository: CatalogueRepository by lazy {
-        CatalogueRepository(saisonsScraper, episodesScraper, slugResolver)
+        CatalogueRepository(saisonsScraper, episodesScraper, slugResolver, lisScraper)
     }
 
     /** Liste du catalogue : la source de l accueil. */

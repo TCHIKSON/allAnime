@@ -73,6 +73,22 @@ object CorrespondanceCatalogue {
     }
 
     /**
+     * Comme [choisir], mais pour un titre **abrege** : seule l'egalite compte.
+     *
+     * Un titre raccourci a ce qui precede son `:` ne designe plus une oeuvre precise.
+     * « THE LAST », tire de « THE LAST: NARUTO THE MOVIE », se retrouve en entier
+     * dans « The Last Summoner » : le chercher *dans* les titres du site ouvrait une
+     * serie de douze episodes a la place du film. Il ne reste valable que si une
+     * fiche porte exactement ce nom — « Frieren », « Mushoku Tensei ».
+     */
+    fun choisirExact(titre: String, resultats: List<ResultatRecherche>): ResultatRecherche? {
+        val formes = Slugifier.variantes(titre).filter { it.isNotEmpty() }
+        if (formes.isEmpty()) return null
+
+        return resultats.firstOrNull { resultat -> resultat.formes.any { it in formes } }
+    }
+
+    /**
      * Retire les marqueurs de suite en fin de titre, un par un : « Shingeki no Kyojin
      * Season 3 Part 2 » perd d'abord « Part 2 », puis « Season 3 ».
      *

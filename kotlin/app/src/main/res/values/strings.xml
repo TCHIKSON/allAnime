@@ -30,6 +30,12 @@
     <string name="search_keyboard_space">Espace</string>
     <string name="search_keyboard_symbols">&amp;?!</string>
     <string name="search_keyboard_letters">ABC</string>
+    <string name="search_voice">Recherche vocale</string>
+    <string name="search_voice_prompt">Dites le titre de l\'anime</string>
+    <string name="search_voice_listening">Parlez… (OK pour arrêter)</string>
+    <string name="search_voice_nothing">Je n\'ai rien entendu. Appuyez de nouveau et dites le titre.</string>
+    <string name="search_voice_failed">La reconnaissance vocale a échoué. Réessayez.</string>
+    <string name="search_voice_unavailable">La recherche vocale n\'est pas disponible sur cet appareil.</string>
     <string name="section_released_today">Sortis %1$s</string>
     <string name="section_recent_additions">Ajouts des jours précédents</string>
     <string name="label_episode_new">Nouveau</string>
